@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd /tmp/
+{{ pg_dump_command }}
+
+export AWS_USERNAME="{{ aws_username }}"
+export AWS_PASSWORD="{{ aws_password }}"
+export PASSPHRASE="{{ dup_backup_pass }}"
+
+{{ duplicity_backups_command }}

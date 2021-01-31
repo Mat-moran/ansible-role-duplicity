@@ -3,6 +3,11 @@
 #--------------------------------------------------
 # Backup Configuration
 #--------------------------------------------------
+- name: Install boto3
+  pip:
+    name: boto3
+  when: backupRemoteStorage == "aws_s3"
+
 - name: Backup script
   template:
     src: backup.sh.j2

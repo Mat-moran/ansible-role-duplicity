@@ -1,36 +1,38 @@
 ---
+
+######################
 # COMMON variables
 db_name: tests
 db_user: user
 dump_location: '/tmp/backup-$PGDATABASE.pgdump'
 
+######################
 # DUMPS commands
 pg_dump_command: su -c 'pg_dump {{ db_name }} --no-owner --no-privileges --format c --file {{ dump_location }}' -s /bin/sh {{ db_user }}
 
+######################
 # DUPLICITY variables
+
 # folder of the filestore
-filestore_location: '/opt/filestore'
+filestore_location: /opt/filestore
+
 # destination of the backup, can be sftp, swift, s3, etc...
-dst: '' 
+dup_dst: '' 
 hostname: www.example.com
 
 include_commands: --include {{ dump_location }} --include {{ filestore_location }}
 
 options_extra: --metadata-sync-mode partial --full-if-older-than 1W --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets --s3-multipart-chunk-size 10 --s3-use-new-style
 
-duplicity_backups_command: duplicity {{ include_commands }} {{ dst }} {{ options_extra }}
+duplicity_backups_command: duplicity {{ include_commands }} {{ dup_dst }} {{ options_extra }}
+
+# This are the secrets to acces to S3. It should be save carefully when use the role
+AWS_USERNAME: user
+AWS_PASSWORD: pass
+PASSPHRASE: passphrase
+
 
 # duplicity --include /home/odoo/.local/share/Odoo/filestore/ --include /tmp/backup-$PGDATABASE.pgdump --exclude '**' / swift://odoo_{{ inventory_hostname|lower }}
-
-# CRONS TO SAVE BACKUPS PERIODICALLY
-# crontabs
-# crontab_15m: '*/15 * * * *'
-# crontab_hourly: '0 * * * *'
-# crontab_daily: '0 2 * * MON-SAT'
-# crontab_weekly: '0 1 * * SUN'
-# crontab_monthly: '0 5 1 * *'
-
-
 
 
 

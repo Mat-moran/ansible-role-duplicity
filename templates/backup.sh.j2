@@ -5,7 +5,7 @@ cd /tmp/
 
 {% if backup_secrets is defined %}
 {% for key, value in backup_secrets.items() %}
-export {{ key }} = {{ value }}
+export {{ key }}={{ value }}
 {% endfor %}
 {% else %}
 echo "secrets are not set yet"

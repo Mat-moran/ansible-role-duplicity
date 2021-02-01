@@ -12,6 +12,7 @@ pg_dump_command: su -c 'pg_dump {{ db_name }} --no-owner --no-privileges --forma
 
 ######################
 # DUPLICITY variables
+backupRemoteStorage: aws_s3
 
 # folder of the filestore
 filestore_location: /opt/filestore
@@ -20,11 +21,12 @@ filestore_location: /opt/filestore
 dup_dst: '' 
 hostname: www.example.com
 
-include_commands: --include {{ dump_location }} --include {{ filestore_location }}
+include_commands: --include {{ dump_location }} --include {{ filestore_location }} --exclude '**'
 
 options_extra: --metadata-sync-mode partial --full-if-older-than 1W --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets --s3-multipart-chunk-size 10 --s3-use-new-style
 
-duplicity_backups_command: duplicity {{ include_commands }} {{ dup_dst }} {{ options_extra }}
+duplicity_backups_command: duplicity {{ options_extra }} {{ include_commands }} / {{ dup_dst }} 
+#duplicity_backups_command: duplicity {{ options_extra }}  {{ filestore_location }} {{ dup_dst }} 
 
 # This are the secrets to acces to S3. It should be save carefully when use the role
 AWS_USERNAME: user

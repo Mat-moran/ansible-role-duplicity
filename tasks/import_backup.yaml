@@ -1,0 +1,19 @@
+---
+#--------------------------------------------------
+# Restore a Backup
+#--------------------------------------------------
+- name: Importing external backup
+  block:
+    - name: Create folder where backups are going to be stored
+      file:
+        path: "{{ backup_dir }}/{{ backup_time }}_{{ restore_from_db }}"
+        state: directory
+        owner: root
+        group: root
+
+    - name: Importing database from AWS
+      shell: ./{{ import_aws_scrip_name }} {{ backup_time }} {{ restore_from_db }}
+      args:
+        chdir: /root/
+
+  tags: import_backup

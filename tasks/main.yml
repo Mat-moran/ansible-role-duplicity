@@ -11,10 +11,26 @@
 - name: Backup script
   template:
     src: backup.sh.j2
-    dest: /root/backup-odoo.sh
+    dest: "/root/{{ backup_scrip_name }}"
     mode: 0700
     owner: root
     group: root
+
+- name: Create folder where backups are going to be stored
+  file:
+    path: "{{ backup_dir }}"
+    state: directory
+    owner: root
+    group: root
+
+- name: Restore from AWS script
+  template:
+    src: restore.sh.j2
+    dest: "/root/{{ import_aws_scrip_name }}"
+    mode: 0700
+    owner: root
+    group: root
+  when: backupRemoteStorage == "aws_s3"
 
 - name: add cron job to perform backup
   cron:

@@ -1,0 +1,52 @@
+---
+#--------------------------------------------------
+# Restore a Backup
+#--------------------------------------------------
+- name: Stopping Nginx and Odoo service
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop:
+    - nginx.service
+    - odoo.service
+
+- name: Restaruring process
+  block:
+    - name: "Deleting database --> {{ restore_to_db }}"
+      postgresql_db:
+        name: "{{ restore_to_db }}"
+        state: absent
+        login_user: odoo
+
+    - name: "Creating database --> {{ restore_to_db }}"
+      postgresql_db:
+        name: "{{ restore_to_db }}"
+        state: present
+        login_user: odoo
+
+    - name: "Dumping the backup {{ restore_from_db }} _ {{ backup_time }} to the database --> {{ restore_to_db }}"
+      shell: "pg_restore -d {{ restore_to_db }} {{ restored_file }}"
+
+    - name: Copying the filestore
+      copy:
+        src: "{{ restored_filestore_location }}"
+        dest: "{{ db_filestore_location }}"
+        remote_src: yes
+        force: yes
+      tags: filestore
+
+  become_user: odoo
+  become: true
+
+- name: "Restauring Nginx and Odoo service"
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - nginx.service
+    - odoo.service
+
+- name: Deleting restaured filestore
+  file:
+    path: "{{ imported_backup_dir }}"
+    state: absent

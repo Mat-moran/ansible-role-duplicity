@@ -1,40 +1,45 @@
 ---
+# compression level
+#http://peter.eisentraut.org/blog/2015/12/07/check-your-pg-dump-compression-levels/#:~:text=When%20using%20the%20custom%20output,)%20and%209%20(highest).
 
 ######################
 # COMMON variables
 db_name: tests
 db_user: user
-dump_location: '/tmp/backup-$PGDATABASE.pgdump'
+# dump_location: '/tmp/backup-{{ db_name }}.pgdump'
+dump_file: "{{dump_location}}/backup-{{ db_name }}.sql" # tar and sql supported by ansible
+dump_location: '/tmp'
+restore_command: pg_restore -d {{ db_name }} {{ dump_file }}
+
 
 ######################
 # DUMPS commands
-pg_dump_command: su -c 'pg_dump {{ db_name }} --no-owner --no-privileges --format c --file {{ dump_location }}' -s /bin/sh {{ db_user }}
+pg_dump_command: su -c 'pg_dump {{ db_name }} --no-owner --no-privileges --format c --file {{ dump_file }}' -s /bin/sh {{ db_user }}
 
 ######################
 # DUPLICITY variables
 backupRemoteStorage: aws_s3
 
 # folder of the filestore
-filestore_location: /opt/filestore
+filestore_location: ""
+restore_location: "{{ backup_dir }}/{{ backup_time }}_{{ db_name }}"
 
 # destination of the backup, can be sftp, swift, s3, etc...
 dup_dst: '' 
 hostname: www.example.com
 
-include_commands: --include {{ dump_location }} --include {{ filestore_location }} --exclude '**'
+include_commands: --include {{ dump_file }} --include {{ filestore_location }} --exclude '**'
 
-options_extra: --metadata-sync-mode partial --full-if-older-than 1W --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets --s3-multipart-chunk-size 10 --s3-use-new-style
+options_extra_backup: --metadata-sync-mode partial --full-if-older-than 1W --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets --s3-multipart-chunk-size 10 --s3-use-new-style
+options_extra_restore:  --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets  --s3-use-new-style
 
-duplicity_backups_command: duplicity {{ options_extra }} {{ include_commands }} / {{ dup_dst }} 
-#duplicity_backups_command: duplicity {{ options_extra }}  {{ filestore_location }} {{ dup_dst }} 
+duplicity_backups_command: duplicity {{ options_extra_backup }} {{ include_commands }} / {{ dup_dst }} 
+duplicity_restore_command: duplicity restore {{ options_extra_restore }} {{ dup_dst }} {{ backup_dir }}/$1_$2
 
-# This are the secrets to acces to S3. It should be save carefully when use the role
-AWS_USERNAME: user
-AWS_PASSWORD: pass
-PASSPHRASE: passphrase
-
-
-# duplicity --include /home/odoo/.local/share/Odoo/filestore/ --include /tmp/backup-$PGDATABASE.pgdump --exclude '**' / swift://odoo_{{ inventory_hostname|lower }}
+backup_dir: /tmp/backups # folder where backups are imported
+backup_scrip_name: backup-odoo.sh
+import_aws_scrip_name: import-backup.sh
+restored_file: "{{ restore_location }}{{ dump_file }}"
 
 
 

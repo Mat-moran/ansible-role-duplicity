@@ -1,0 +1,9 @@
+---
+#--------------------------------------------------
+# Make a Backup
+#--------------------------------------------------
+# TODO convert to postgresql_db commands
+- name: "Running {{ backup_scrip_name }}"
+  shell: "./{{ backup_scrip_name }}"
+  args:
+    chdir: /root/

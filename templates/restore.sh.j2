@@ -1,8 +1,7 @@
 #!/bin/bash
 
-cd /tmp/
+cd {{ backup_dir }}
 
-{{ pg_dump_command }}
 
 {% if backup_secrets is defined %}
 {% for key, value in backup_secrets.items() %}
@@ -12,4 +11,5 @@ export {{ key }}={{ value }}
 echo "secrets are not set yet"
 {% endif %}
 
-{{ duplicity_backups_command }}
+{{ duplicity_restore_command }} --time $1
+

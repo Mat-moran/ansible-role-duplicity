@@ -1,8 +1,5 @@
 ---
-# tasks file for ansible-role-duplicity
-#--------------------------------------------------
-# Backup Configuration
-#--------------------------------------------------
+
 - name: Install boto3
   pip:
     name: boto3
@@ -27,15 +24,15 @@
 
 - name: Create folder where backups are going to be stored
   file:
-    path: "{{ backup_dir }}"
+    path: "{{ dump_backup.backup_dir }}"
     state: directory
     owner: root
     group: root
 
-- name: "Creating script for import from AWS {{ import_aws_scrip_name }}"
+- name: "Creating script for import from AWS {{ import_aws_backup.script_name }}"
   template:
-    src: import_backup.sh.j2
-    dest: "/root/{{ import_aws_scrip_name }}"
+    src: "{{ import_aws_backup.template }}"
+    dest: "/root/{{ import_aws_backup.script_name }}"
     mode: 0700
     owner: root
     group: root

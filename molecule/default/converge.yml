@@ -13,3 +13,4 @@
         molecule_testing: true
         odoo_version: "14.0"
         db_user: odoo
+        backup_time: "202021"

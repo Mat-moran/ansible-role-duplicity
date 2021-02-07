@@ -2,58 +2,54 @@
 # compression level
 #http://peter.eisentraut.org/blog/2015/12/07/check-your-pg-dump-compression-levels/#:~:text=When%20using%20the%20custom%20output,)%20and%209%20(highest).
 
-######################
 # COMMON variables
 db_name: tests
 db_user: user
-# dump_location: '/tmp/backup-{{ db_name }}.pgdump'
-dump_file: "{{dump_location}}/backup-{{ db_name }}.sql" # tar and sql supported by ansible
-dump_location: '/tmp'
-restore_command: pg_restore -d {{ db_name }} {{ dump_file }}
 
-
-######################
 # DUMPS commands
-pg_dump_command: su -c 'pg_dump {{ db_name }} --no-owner --no-privileges --format c --file {{ dump_file }}' -s /bin/sh {{ db_user }}
-
-######################
-# DUPLICITY variables
-backupRemoteStorage: aws_s3
-
-# folder of the filestore
-filestore_location: ""
-import_location: "{{ backup_dir }}/{{ backup_time }}_{{ db_name }}"
-
-# destination of the backup, can be sftp, swift, s3, etc...
-dup_dst: '' 
-hostname: www.example.com
-
-include_commands: --include {{ dump_file }} --include {{ filestore_location }} --exclude '**'
-
-options_extra_backup: --metadata-sync-mode partial --full-if-older-than 1W --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets --s3-multipart-chunk-size 10 --s3-use-new-style
-
-options_extra_restore:  --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets  --s3-use-new-style
-
-duplicity_backups_command: duplicity {{ options_extra_backup }} {{ include_commands }} / {{ dup_dst }} 
-duplicity_import_command: duplicity restore {{ options_extra_restore }} {{ dup_dst }} {{ backup_dir }}/$1_$2
-
-backup_dir: /tmp/backups # folder where backups are imported
-import_aws_scrip_name: import-backup.sh
-impoted_file: "{{ import_location }}{{ dump_file }}"
-
-
 dump_backup:
+  backup_dir: /tmp/backups # folder where backups are imported
   template: dump.sh.j2
   script_name: dumpDB.sh
+  dump_location: '/tmp'
+  file_prefix: 'backup-'
   minute: "*/30"
   hour: "7-22"
 
+dump_file: "{{dump_backup.dump_location}}/{{ dump_backup.file_prefix }}{{ db_name }}.sql" # tar and sql supported by ansible
+pg_dump_command: su -c 'pg_dump {{ db_name }} --no-owner --no-privileges --format c --file {{ dump_file }}' -s /bin/sh {{ db_user }}
+
+
+# DUPLICITY variables
 complete_backup:
   template: backup.sh.j2
   script_name: backup-odoo.sh
+  filestore_location: ""
+  export_dst: ""
+  prefix: "{{ hostname }}"
   minute: "45"
   hour: "3"
 
+import_aws_backup:
+  template: import_backup.sh.j2
+  script_name: import_backup.sh
+  import_location: "{{ dump_backup.backup_dir }}/{{ backup_time }}_{{ db_name }}"
+  
+restore_command: pg_restore -d {{ db_name }} {{ dump_file }}
+
+
+
+backupRemoteStorage: aws_s3
+
+# destination of the backup, can be sftp, swift, s3, etc...
+hostname: www.example.com
+
+include_commands: --include {{ dump_file }} --include {{ complete_backup.filestore_location }} --exclude '**'
+options_extra_backup: --metadata-sync-mode partial --full-if-older-than 1W --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets --s3-multipart-chunk-size 10 --s3-use-new-style
+options_extra_restore:  --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets  --s3-use-new-style
+
+duplicity_backups_command: duplicity {{ options_extra_backup }} {{ include_commands }} / {{ complete_backup.export_dst }} 
+duplicity_import_command: duplicity restore {{ options_extra_restore }} {{ complete_backup.export_dst }} {{ dump_backup.backup_dir }}/$1_$2
 
 
 

@@ -11,5 +11,5 @@ export {{ key }}={{ value }}
 echo "secrets are not set yet"
 {% endif %}
 
-{{ duplicity_restore_command }} --time $1
+{{ duplicity_import_command }} --time $1
 

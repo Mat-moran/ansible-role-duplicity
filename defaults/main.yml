@@ -22,7 +22,7 @@ backupRemoteStorage: aws_s3
 
 # folder of the filestore
 filestore_location: ""
-restore_location: "{{ backup_dir }}/{{ backup_time }}_{{ db_name }}"
+import_location: "{{ backup_dir }}/{{ backup_time }}_{{ db_name }}"
 
 # destination of the backup, can be sftp, swift, s3, etc...
 dup_dst: '' 
@@ -31,15 +31,16 @@ hostname: www.example.com
 include_commands: --include {{ dump_file }} --include {{ filestore_location }} --exclude '**'
 
 options_extra_backup: --metadata-sync-mode partial --full-if-older-than 1W --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets --s3-multipart-chunk-size 10 --s3-use-new-style
+
 options_extra_restore:  --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets  --s3-use-new-style
 
 duplicity_backups_command: duplicity {{ options_extra_backup }} {{ include_commands }} / {{ dup_dst }} 
-duplicity_restore_command: duplicity restore {{ options_extra_restore }} {{ dup_dst }} {{ backup_dir }}/$1_$2
+duplicity_import_command: duplicity restore {{ options_extra_restore }} {{ dup_dst }} {{ backup_dir }}/$1_$2
 
 backup_dir: /tmp/backups # folder where backups are imported
 backup_scrip_name: backup-odoo.sh
 import_aws_scrip_name: import-backup.sh
-restored_file: "{{ restore_location }}{{ dump_file }}"
+impoted_file: "{{ import_location }}{{ dump_file }}"
 
 
 

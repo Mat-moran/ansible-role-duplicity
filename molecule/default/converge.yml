@@ -1,7 +1,15 @@
 ---
+# TODO separate role raw-server in different tasks files to be able to call from testing without create users
 - name: Converge
   hosts: all
   tasks:
+    # - name: "Include ansible-raw-server"
+    #   import_tasks: "../../../ansible-role-raw-server/tasks/packages.yml"
+
     - name: "Include ansible-role-duplicity"
       include_role:
         name: "ansible-role-duplicity"
+      vars:
+        molecule_testing: true
+        odoo_version: "14.0"
+        db_user: odoo

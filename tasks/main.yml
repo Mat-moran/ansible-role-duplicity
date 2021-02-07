@@ -10,8 +10,8 @@
 
 - name: Generating DB Dump script
   template:
-    src:  dump.sh.j2
-    dest: "/root/{{ dump_backup_scrip_name }}"
+    src:  "{{ dump_backup.template }}"
+    dest: "/root/{{ dump_backup.script_name }}"
     mode: 0700
     owner: root
     group: root
@@ -19,8 +19,8 @@
 
 - name: Backup script
   template:
-    src: backup.sh.j2
-    dest: "/root/{{ complete_backup_scrip_name }}"
+    src: "{{ complete_backup.template }}"
+    dest: "/root/{{ complete_backup.script_name }}"
     mode: 0700
     owner: root
     group: root
@@ -44,16 +44,16 @@
 - name: add cron job to perform dumps of the DB
   cron:
     name: Dump Odoo
-    minute: "*/30"
-    hour: "7-22"
-    job: "/root/{{ dump_backup_scrip_name }}"
+    minute: "{{ dump_backup.minute }}"
+    hour: "{{ dump_backup.hour }}"
+    job: "/root/{{ dump_backup.script_name }}"
 
 - name: add cron job to perform backup
   cron:
     name: Complete Odoo Backup and sent to AWS
-    minute: "45"
-    hour: "3"
-    job: "/root/{{ complete_backup_scrip_name }}"
+    minute: "{{ complete_backup.minute }}"
+    hour: "{{ complete_backup.hour }}"
+    job: "/root/{{ complete_backup.script_name }}"
 
 
 

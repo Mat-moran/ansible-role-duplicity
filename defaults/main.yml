@@ -38,7 +38,8 @@ duplicity_backups_command: duplicity {{ options_extra_backup }} {{ include_comma
 duplicity_import_command: duplicity restore {{ options_extra_restore }} {{ dup_dst }} {{ backup_dir }}/$1_$2
 
 backup_dir: /tmp/backups # folder where backups are imported
-backup_scrip_name: backup-odoo.sh
+dump_backup_scrip_name: dump_DB.sh
+complete_backup_scrip_name: backup-odoo.sh
 import_aws_scrip_name: import-backup.sh
 impoted_file: "{{ import_location }}{{ dump_file }}"
 

@@ -8,10 +8,19 @@
     name: boto3
   when: backupRemoteStorage == "aws_s3"
 
+- name: Generating DB Dump script
+  template:
+    src:  dump.sh.j2
+    dest: "/root/{{ dump_backup_scrip_name }}"
+    mode: 0700
+    owner: root
+    group: root
+
+
 - name: Backup script
   template:
     src: backup.sh.j2
-    dest: "/root/{{ backup_scrip_name }}"
+    dest: "/root/{{ complete_backup_scrip_name }}"
     mode: 0700
     owner: root
     group: root
@@ -32,19 +41,19 @@
     group: root
   when: backupRemoteStorage == "aws_s3"
 
-- name: add cron job to perform backup
+- name: add cron job to perform dumps of the DB
   cron:
-    name: Backup Odoo
-    minute: "45"
-    hour: "1"
-    job: /root/backup-odoo.sh
+    name: Dump Odoo
+    minute: "*/30"
+    hour: "7-22"
+    job: "/root/{{ dump_backup_scrip_name }}"
 
 - name: add cron job to perform backup
   cron:
-    name: Backup Odoo 2
-    minute: "05"
-    hour: "4"
-    job: /root/backup-odoo.sh
+    name: Complete Odoo Backup and sent to AWS
+    minute: "45"
+    hour: "3"
+    job: "/root/{{ complete_backup_scrip_name }}"
 
 
 

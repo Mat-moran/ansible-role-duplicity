@@ -24,7 +24,7 @@
 
 - name: Create folder where backups are going to be stored
   file:
-    path: "{{ dump_backup.backup_dir }}"
+    path: "{{ import_aws_backup.backup_dir }}"
     state: directory
     owner: root
     group: root

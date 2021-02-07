@@ -8,7 +8,6 @@ db_user: user
 
 # DUMPS commands
 dump_backup:
-  backup_dir: /tmp/backups # folder where backups are imported
   template: dump.sh.j2
   script_name: dumpDB.sh
   dump_location: '/tmp'
@@ -33,7 +32,9 @@ complete_backup:
 import_aws_backup:
   template: import_backup.sh.j2
   script_name: import_backup.sh
-  import_location: "{{ dump_backup.backup_dir }}/{{ backup_time }}_{{ db_name }}"
+  backup_dir: ""  
+
+import_location: "{{ backup_dir }}/{{ backup_time }}_{{ db_name }}"
   
 restore_command: pg_restore -d {{ db_name }} {{ dump_file }}
 

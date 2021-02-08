@@ -1,4 +1,5 @@
 ---
+# TODO reformat default variables. I do not like dictionaries because they are not accesible by parts
 # compression level
 #http://peter.eisentraut.org/blog/2015/12/07/check-your-pg-dump-compression-levels/#:~:text=When%20using%20the%20custom%20output,)%20and%209%20(highest).
 
@@ -13,6 +14,7 @@ dump_backup:
   dump_location: '/tmp'
   file_prefix: 'backup-'
   minute: "*/30"
+  weekday: "1-5"
   hour: "7-22"
 
 dump_file: "{{dump_backup.dump_location}}/{{ dump_backup.file_prefix }}{{ db_name }}.sql" # tar and sql supported by ansible
@@ -34,7 +36,7 @@ import_aws_backup:
   script_name: import_backup.sh
   backup_dir: ""  
 
-import_location: "{{ backup_dir }}/{{ backup_time }}_{{ db_name }}"
+import_location: "{{ import_aws_backup.backup_dir }}/{{ backup_time }}_{{ db_name }}"
   
 restore_command: pg_restore -d {{ db_name }} {{ dump_file }}
 
@@ -50,7 +52,7 @@ options_extra_backup: --metadata-sync-mode partial --full-if-older-than 1W --fil
 options_extra_restore:  --file-prefix-archive archive-{{ hostname }}- --file-prefix-manifest manifest-{{ hostname }}- --file-prefix-signature signature-{{ hostname }}- --s3-european-buckets  --s3-use-new-style
 
 duplicity_backups_command: duplicity {{ options_extra_backup }} {{ include_commands }} / {{ complete_backup.export_dst }} 
-duplicity_import_command: duplicity restore {{ options_extra_restore }} {{ complete_backup.export_dst }} {{ dump_backup.backup_dir }}/$1_$2
+duplicity_import_command: duplicity restore {{ options_extra_restore }} {{ complete_backup.export_dst }} {{ import_aws_backup.backup_dir }}/$1_$2
 
 
 

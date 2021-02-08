@@ -14,3 +14,7 @@
         odoo_version: "14.0"
         db_user: odoo
         backup_time: "202021"
+        import_aws_backup:
+          template: import_backup.sh.j2
+          script_name: import_backup.sh
+          backup_dir: "/opt/odoo/"

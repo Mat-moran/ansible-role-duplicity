@@ -43,6 +43,7 @@
     name: Dump Odoo
     minute: "{{ dump_backup.minute }}"
     hour: "{{ dump_backup.hour }}"
+    weekday: "{{ dump_backup.weekday }}"
     job: "/root/{{ dump_backup.script_name }}"
 
 - name: add cron job to perform backup
